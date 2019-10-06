@@ -10,3 +10,7 @@ where x - from uniform distribution;
       e - random noise;
 
 As a output you can find parameters of linear regression
+
+Useful links:
+* https://habr.com/en/post/307004
+* https://towardsdatascience.com/gradient-descent-in-python-a0d07285742f
