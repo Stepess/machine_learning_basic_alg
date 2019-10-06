@@ -1,5 +1,6 @@
 # Gradient descent algorithm for linear regression
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def lost_function(a, b, x_arr, y_arr):
@@ -24,6 +25,7 @@ def step_gradient(a_current, b_current, x_arr, y_arr, learning_rate):
     # Partial derivative of lost function by b
     b_gradient = np.sum(-(2 / num_of_points) * (y_arr - (a_current * x_arr + b_current)))
 
+    # Minus because we actually need move in direction of antigradient (- grad) to minimize lost function
     new_a = a_current - (learning_rate * a_gradient)
     new_b = b_current - (learning_rate * b_gradient)
 
@@ -42,15 +44,18 @@ def gradient_descent_runner(x_arr, y_arr, starting_a, starting_b, learning_rate,
 
 if __name__ == "__main__":
     # init sample
-    sample_size = 1000
+    sample_size = 100
 
     x_sample = np.random.rand(sample_size)
 
     a_real = 2.5
     b_real = 1.6
 
-    rand_arr = np.random.random_sample(sample_size)
-    y_sample = a_real * x_sample + b_real + rand_arr
+    noise_arr = np.random.random_sample(sample_size)
+    y_sample = a_real * x_sample + b_real + noise_arr
+
+    plt.plot(x_sample, y_sample, 'ro')
+    plt.show()
 
     # hyperparameters
     lr = 0.01  # how fast the data converge
