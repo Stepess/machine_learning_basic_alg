@@ -83,9 +83,13 @@ test_y = data[test_index:, 2]
 
 model = LogisticRegression(lr=0.1, num_iter=30000)
 
+print('Training...')
 model.fit(train_x, train_y)
 
+print('Predicting...')
 preds = model.predict(test_x)
-print((preds == test_y).mean())
 
-print(model.theta)
+accuracy = (preds == test_y).mean()
+print('Accuracy is {0}%'.format(accuracy * 100))
+
+print('Model params is {0}'.format(model.theta))
