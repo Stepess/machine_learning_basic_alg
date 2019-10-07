@@ -12,7 +12,7 @@ def class_counts(rows):
     """Counts the number of each type of example in a dataset."""
     counts = {}  # a dictionary of label -> count.
     for row in rows:
-        # in our dataset format, the label is always the last column
+        # the label is always the last column
         label = row[-1]
         if label not in counts:
             counts[label] = 0
@@ -116,17 +116,17 @@ class Decision_Node:
         self.false_branch = false_branch
 
 
-def build_tree(rows):
+def build_tree(rows, level: int, max_depth: int):
     gain, question = find_best_split(rows)
 
-    if gain == 0:
+    if gain == 0 or level == max_depth:
         return Leaf(rows)
 
     true_rows, false_rows = partition(rows, question)
 
-    true_branch = build_tree(true_rows)
+    true_branch = build_tree(true_rows, level + 1, max_depth)
 
-    false_branch = build_tree(false_rows)
+    false_branch = build_tree(false_rows, level + 1, max_depth)
 
     return Decision_Node(question, true_branch, false_branch)
 
@@ -163,10 +163,14 @@ if __name__ == '__main__':
 
     training_data = np.c_[train_x, train_y]
 
-    my_tree = build_tree(training_data)
+    max_depth = 10
+
+    my_tree = build_tree(training_data, 0, 10)
 
     testing_data = np.c_[test_x, test_y]
 
     results = [classify(x, my_tree) for x in testing_data]
 
-    print((results == test_y).mean())
+    accuracy = (results == test_y).mean()
+
+    print('Accuracy is {0}'.format(accuracy))
