@@ -1,52 +1,12 @@
-"""Code to accompany Machine Learning Recipes #8.
-We'll write a Decision Tree Classifier, in pure Python.
-"""
-
-# For Python 2 / 3 compatability
-from __future__ import print_function
 from sklearn import *
 import numpy as np
 import operator
-
-# Toy dataset.
-# Format: each row is an example.
-# The last column is the label.
-# The first two columns are features.
-# Feel free to play with it by adding more features & examples.
-# Interesting note: I've written this so the 2nd and 5th examples
-# have the same features, but different labels - so we can see how the
-# tree handles this case.
-iris = datasets.load_iris()
-X = iris.data[:, :2]
-y = (iris.target != 0) * 1
-
-features_num = X.shape[0]
-
-test_p = 20
-
-test_index = int(features_num - (test_p * features_num) / 100)
-
-data = np.c_[X, y]
-np.random.shuffle(data)
-
-train_x = data[:test_index, :2]
-train_y = data[:test_index, 2]
-
-test_x = data[test_index:, :2]
-test_y = data[test_index:, 2]
-
-training_data = np.c_[train_x, train_y]
-
-print(training_data)
-
-# Column labels.
-# These are used only to print the tree.
-header = ["color", "diameter", "label"]
 
 
 def unique_vals(rows, col):
     """Find the unique values for a column in a dataset."""
     return set([row[col] for row in rows])
+
 
 #######
 # Demo:
@@ -66,20 +26,10 @@ def class_counts(rows):
         counts[label] += 1
     return counts
 
+
 #######
 # Demo:
 # class_counts(training_data)
-#######
-
-
-def is_numeric(value):
-    """Test if a value is numeric."""
-    return isinstance(value, int) or isinstance(value, float)
-
-#######
-# Demo:
-# is_numeric(7)
-# is_numeric("Red")
 #######
 
 
@@ -99,19 +49,8 @@ class Question:
         # Compare the feature value in an example to the
         # feature value in this question.
         val = example[self.column]
-        if is_numeric(val):
-            return val >= self.value
-        else:
-            return val == self.value
+        return val >= self.value
 
-    def __repr__(self):
-        # This is just a helper method to print
-        # the question in a readable format.
-        condition = "=="
-        if is_numeric(self.value):
-            condition = ">="
-        return "%s %s?" % (
-           condition, str(self.value))
 
 #######
 # Demo:
@@ -160,7 +99,7 @@ def gini(rows):
     impurity = 1
     for lbl in counts:
         prob_of_lbl = counts[lbl] / float(len(rows))
-        impurity -= prob_of_lbl**2
+        impurity -= prob_of_lbl ** 2
     return impurity
 
 
@@ -198,6 +137,7 @@ def info_gain(left, right, current_uncertainty):
     """
     p = float(len(left)) / (len(left) + len(right))
     return current_uncertainty - p * gini(left) - (1 - p) * gini(right)
+
 
 #######
 # Demo:
@@ -269,6 +209,7 @@ def find_best_split(rows):
 
     return best_gain, best_question
 
+
 #######
 # Demo:
 # Find the best question to ask first for our toy dataset.
@@ -336,32 +277,12 @@ def build_tree(rows):
     return Decision_Node(question, true_branch, false_branch)
 
 
-def print_tree(node, spacing=""):
-    """World's most elegant tree printing function."""
-
-    # Base case: we've reached a leaf
-    if isinstance(node, Leaf):
-        print (spacing + "Predict", node.predictions)
-        return
-
-    # Print the question at this node
-    print (spacing + str(node.question))
-
-    # Call this function recursively on the true branch
-    print (spacing + '--> True:')
-    print_tree(node.true_branch, spacing + "  ")
-
-    # Call this function recursively on the false branch
-    print (spacing + '--> False:')
-    print_tree(node.false_branch, spacing + "  ")
-
-
 def classify(row, node):
     """See the 'rules of recursion' above."""
 
     # Base case: we've reached a leaf
     if isinstance(node, Leaf):
-        return  max(node.predictions.items(), key=operator.itemgetter(1))[0]
+        return max(node.predictions.items(), key=operator.itemgetter(1))[0]
 
     # Decide whether to follow the true-branch or the false-branch.
     # Compare the feature / value stored in the node,
@@ -372,52 +293,33 @@ def classify(row, node):
         return classify(row, node.false_branch)
 
 
-#######
-# Demo:
-# The tree predicts the 1st row of our
-# training data is an apple with confidence 1.
-# my_tree = build_tree(training_data)
-# classify(training_data[0], my_tree)
-#######
-
-def print_leaf(counts):
-    """A nicer way to print the predictions at a leaf."""
-    total = sum(counts.values()) * 1.0
-    probs = {}
-    for lbl in counts.keys():
-        probs[lbl] = str(int(counts[lbl] / total * 100)) + "%"
-    return probs
-
-
-#######
-# Demo:
-# Printing that a bit nicer
-# print_leaf(classify(training_data[0], my_tree))
-#######
-
-#######
-# Demo:
-# On the second example, the confidence is lower
-# print_leaf(classify(training_data[1], my_tree))
-#######
-
 if __name__ == '__main__':
+    iris = datasets.load_iris()
+    X = iris.data[:, :2]
+    y = (iris.target != 0) * 1
+
+    features_num = X.shape[0]
+
+    test_p = 20
+
+    test_index = int(features_num - (test_p * features_num) / 100)
+
+    data = np.c_[X, y]
+    np.random.shuffle(data)
+
+    train_x = data[:test_index, :2]
+    train_y = data[:test_index, 2]
+
+    test_x = data[test_index:, :2]
+    test_y = data[test_index:, 2]
+
+    training_data = np.c_[train_x, train_y]
 
     my_tree = build_tree(training_data)
-
-    print_tree(my_tree)
 
     # Evaluate
     testing_data = np.c_[test_x, test_y]
 
     results = [classify(x, my_tree) for x in testing_data]
-    print(results)
-    print(test_y)
 
     print((results == test_y).mean())
-
-
-# Next steps
-# - add support for missing (or unseen) attributes
-# - prune the tree to prevent overfitting
-# - add support for regression
