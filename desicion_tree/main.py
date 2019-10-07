@@ -4,6 +4,9 @@ We'll write a Decision Tree Classifier, in pure Python.
 
 # For Python 2 / 3 compatability
 from __future__ import print_function
+from sklearn import *
+import numpy as np
+import operator
 
 # Toy dataset.
 # Format: each row is an example.
@@ -13,13 +16,28 @@ from __future__ import print_function
 # Interesting note: I've written this so the 2nd and 5th examples
 # have the same features, but different labels - so we can see how the
 # tree handles this case.
-training_data = [
-    ['Green', 3, 'Apple'],
-    ['Yellow', 3, 'Apple'],
-    ['Red', 1, 'Grape'],
-    ['Red', 1, 'Grape'],
-    ['Yellow', 3, 'Lemon'],
-]
+iris = datasets.load_iris()
+X = iris.data[:, :2]
+y = (iris.target != 0) * 1
+
+features_num = X.shape[0]
+
+test_p = 20
+
+test_index = int(features_num - (test_p * features_num) / 100)
+
+data = np.c_[X, y]
+np.random.shuffle(data)
+
+train_x = data[:test_index, :2]
+train_y = data[:test_index, 2]
+
+test_x = data[test_index:, :2]
+test_y = data[test_index:, 2]
+
+training_data = np.c_[train_x, train_y]
+
+print(training_data)
 
 # Column labels.
 # These are used only to print the tree.
@@ -92,8 +110,8 @@ class Question:
         condition = "=="
         if is_numeric(self.value):
             condition = ">="
-        return "Is %s %s %s?" % (
-            header[self.column], condition, str(self.value))
+        return "%s %s?" % (
+           condition, str(self.value))
 
 #######
 # Demo:
@@ -343,7 +361,7 @@ def classify(row, node):
 
     # Base case: we've reached a leaf
     if isinstance(node, Leaf):
-        return node.predictions
+        return  max(node.predictions.items(), key=operator.itemgetter(1))[0]
 
     # Decide whether to follow the true-branch or the false-branch.
     # Compare the feature / value stored in the node,
@@ -390,17 +408,14 @@ if __name__ == '__main__':
     print_tree(my_tree)
 
     # Evaluate
-    testing_data = [
-        ['Green', 3, 'Apple'],
-        ['Yellow', 4, 'Apple'],
-        ['Red', 2, 'Grape'],
-        ['Red', 1, 'Grape'],
-        ['Yellow', 3, 'Lemon'],
-    ]
+    testing_data = np.c_[test_x, test_y]
 
-    for row in testing_data:
-        print ("Actual: %s. Predicted: %s" %
-               (row[-1], print_leaf(classify(row, my_tree))))
+    results = [classify(x, my_tree) for x in testing_data]
+    print(results)
+    print(test_y)
+
+    print((results == test_y).mean())
+
 
 # Next steps
 # - add support for missing (or unseen) attributes
